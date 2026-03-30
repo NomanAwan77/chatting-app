@@ -74,21 +74,31 @@ cd backend && npm install
 cd ../frontend && npm install
 ```
 
-### 4) Run backend
+### 4) Configure Frontend Environment
+
+Create `frontend/.env`:
+
+```env
+VITE_API_BASE=http://localhost:3000
+```
+
+For production, set `VITE_API_BASE` to your deployed backend URL (for example: `https://api.yourdomain.com`).
+
+### 5) Run backend
 
 ```bash
 cd backend
 npm run dev
 ```
 
-### 5) Run frontend
+### 6) Run frontend
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-Frontend runs on Vite dev server (usually `http://localhost:5173`) and proxies API/socket traffic to backend (`http://localhost:3000`).
+Frontend runs on Vite dev server (usually `http://localhost:5173`) and calls backend directly using `VITE_API_BASE`.
 
 ## Frontend Notes
 

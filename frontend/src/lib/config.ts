@@ -1,2 +1,2 @@
-/** Empty string = same origin (use Vite proxy in dev). Set in production if API is on another host. */
-export const API_BASE = import.meta.env.VITE_API_BASE ?? ''
+/** API server origin used by HTTP and Socket.IO (example: https://api.example.com). */
+export const API_BASE = import.meta.env.VITE_API_BASE ?? 'http://localhost:3000'
