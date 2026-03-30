@@ -375,7 +375,7 @@ export function ChatPage() {
           <div className="status">
         {socketError ? (
               <span className="badge warn" title={socketError}>
-                Realtime: error
+                Realtime: {socketError}
               </span>
             ) : connected ? (
               <span className="badge ok">Live</span>

@@ -51,6 +51,7 @@ export function useChatSocket(
     });
 
     s.on("connect_error", (err) => {
+      console.error("Socket connect_error:", err.message);
       setSocketError(err.message);
       setConnected(false);
     });
@@ -76,7 +77,9 @@ export function useChatSocket(
     });
 
     s.on("typing_start", ({ userId }: TypingPayload) => {
-      setTypingUsers((prev) => (prev.includes(userId) ? prev : [...prev, userId]));
+      setTypingUsers((prev) =>
+        prev.includes(userId) ? prev : [...prev, userId],
+      );
     });
     s.on("typing_stop", ({ userId }: TypingPayload) => {
       setTypingUsers((prev) => prev.filter((id) => id !== userId));
