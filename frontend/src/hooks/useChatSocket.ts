@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import { API_BASE } from "../lib/config";
-import { getCookie } from "../lib/cookies";
 
 type ReceivePayload = { senderId: string; message: string };
 type TypingPayload = { userId: string };
@@ -29,16 +28,8 @@ export function useChatSocket(
       return;
     }
 
-    const token = getCookie("token");
-    if (!token) {
-      setSocketError("No session token for realtime connection");
-      setSocket(null);
-      setConnected(false);
-      return;
-    }
-
     const s = io(API_BASE || undefined, {
-      auth: { token },
+      withCredentials: true,
       transports: ["websocket", "polling"],
       reconnectionAttempts: 8,
     });
