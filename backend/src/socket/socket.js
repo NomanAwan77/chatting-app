@@ -6,14 +6,51 @@ let io;
 // store userId -> socketId
 const onlineUsers = new Map();
 
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .map((origin) => origin.replace(/\/+$/, ""))
+  .filter(Boolean);
+
+const getTokenFromCookieHeader = (cookieHeader = "") => {
+  const tokenPair = cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith("token="));
+
+  if (!tokenPair) return null;
+  return decodeURIComponent(tokenPair.slice("token=".length));
+};
+
 const initSocket = async (server) => {
   io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+        const normalizedOrigin = origin.replace(/\/+$/, "");
+        if (allowedOrigins.includes(normalizedOrigin)) {
+          return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+      },
+      credentials: true,
     },
   });
+  io.engine.on("connection_error", (err) => {
+    console.log("Socket connection error:", {
+      message: err.message,
+      code: err.code,
+      origin: err.req?.headers?.origin,
+    });
+  });
+
   io.use((socket, next) => {
-    const token = socket.handshake.auth.token;
+    const tokenFromAuth = socket.handshake.auth?.token;
+    const tokenFromCookie = getTokenFromCookieHeader(
+      socket.handshake.headers.cookie,
+    );
+    const token = tokenFromAuth || tokenFromCookie;
+    console.log("token from socket", token);
     if (!token) {
       return next(new Error("Unauthorized"));
     }
@@ -27,12 +64,14 @@ const initSocket = async (server) => {
   });
 
   io.on("connection", (socket) => {
+    console.log("Socket connected:", socket.id);
     const userId = socket.user.userId;
     if (!onlineUsers.has(userId)) {
       onlineUsers.set(userId, new Set());
     }
     onlineUsers.get(userId).add(socket.id);
     socket.emit("online_users", Array.from(onlineUsers.keys()));
+    console.log("Connected users", onlineUsers);
 
     const isFirstConnection = onlineUsers.get(userId).size === 1;
 
